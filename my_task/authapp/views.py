@@ -10,6 +10,7 @@ from django.contrib.sessions.models import Session
 from django.contrib.auth.hashers import check_password
 from .utils import generate_jwt, decode_token
 from .main import RazorpayClient
+from rest_framework.pagination import PageNumberPagination
 import jwt
 import smtplib
 from .models import UserDetails, UserLogin, Products, AdminLogin, Transaction
@@ -53,6 +54,29 @@ def register_view(request):
             return Response(task_data.data, status=status.HTTP_200_OK)
         return Response({"message": "No User found"}, status=status.HTTP_404_NOT_FOUND)
     
+
+    elif request.method == 'DELETE':
+            query_data=UserDetails.objects.filter(id=request.data.get('id'))
+            if query_data.exists():
+                query_data.delete()
+                return Response({'msg': 'User deleted successfully'}, status=status.HTTP_200_OK)
+            return Response({"message": "No user found"}, status=status.HTTP_404_NOT_FOUND)
+        
+
+    elif request.method == 'PATCH':
+            query_data=UserDetails.objects.get(id=request.data.get('id'))
+            serializer = UserSerializer(query_data, data=request.data, partial=True)
+            if serializer.is_valid():
+                serializer.save()
+                return Response({'msg': 'User updated successfully'}, status=status.HTTP_200_OK)
+            return Response({"message": "No User found"}, status=status.HTTP_404_NOT_FOUND)
+    
+    else:
+            response={
+            "meggage": "It can not processed",
+            }
+            return Response(response, status=status.HTTP_400_BAD_REQUEST)
+    
     
 
 
@@ -94,11 +118,12 @@ def login_view(request):
             login(request, user)
             # set user-specific data in the session
             request.session['username'] = email
+            request.session['is_logged_in'] = True
             request.session.save()
             return Response({"message": "login success"}, status=status.HTTP_200_OK)
         else:
             response={
-        "meggage": "Authentication failed for admin",
+        "message": "Authentication failed for admin",
         }
         return Response(response, status=status.HTTP_400_BAD_REQUEST)
 
@@ -125,7 +150,7 @@ def login_view(request):
 
 
 
-@api_view(['POST','GET','PUT','PATCH','DELETE'])
+@api_view(['POST','GET','PATCH','DELETE'])
 def register_product(request):
         if request.method == 'POST':
             data = request.data
@@ -142,13 +167,16 @@ def register_product(request):
         elif request.method == 'GET':
             query_data=Products.objects.all()
             if query_data.exists():
-                task_data=ProductSerializer(query_data, many=True)
-                return Response(task_data.data, status=status.HTTP_200_OK)
+                paginator = PageNumberPagination()
+                paginator.page_size = 2
+                paginationdata = paginator.paginate_queryset(query_data, request)
+                serializer=ProductSerializer(paginationdata, many=True)
+                return paginator.get_paginated_response(serializer.data)
             return Response({"message": "No User found"}, status=status.HTTP_404_NOT_FOUND)
         
 
         elif request.method == 'DELETE':
-            query_data=Products.objects.get(id=request.data.get('id'))
+            query_data=Products.objects.filter(id=request.data.get('id'))
             if query_data.exists():
                 query_data.delete()
                 return Response({'msg': 'Product deleted successfully'}, status=status.HTTP_200_OK)
@@ -172,6 +200,8 @@ def register_product(request):
     
 @api_view(['POST'])
 def product_search(request):
+    if request.data is None:
+         return Response({"message": "Please Enter data which you want to find"}, status=status.HTTP_404_NOT_FOUND)
     if request.method == "POST":
         data = request.data.get('name')
         query_data = Products.objects.filter(product_name__icontains=data)
@@ -186,9 +216,9 @@ def product_search(request):
 def user_search(request):
     if request.method == "POST":
         data = request.data.get('name')
-        query_data = Products.objects.filter(name__icontains=data)
+        query_data = UserDetails.objects.filter(name__icontains=data)
         if query_data.exists():
-            task_data = ProductSerializer(query_data, many=True)
+            task_data = UserSerializer(query_data, many=True)
             return Response(task_data.data, status=status.HTTP_200_OK)
         return Response({"message": "No data found"}, status=status.HTTP_404_NOT_FOUND)
     
