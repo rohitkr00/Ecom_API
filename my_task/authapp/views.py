@@ -18,7 +18,7 @@ from .serializers import UserSerializer, UserLoginSerializer, ProductSerializer,
 
 
 
-@api_view(['POST', 'GET'])
+@api_view(['POST', 'GET', 'PATCH', 'DELETE'])
 def register_view(request):
     if request.method=='POST':
         data=request.data
@@ -39,7 +39,7 @@ def register_view(request):
             email=email1,
             password=password1
         )
-            data11.save()
+            data11.save() 
             # print(serializer_login)
             # serializer_login.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
@@ -57,8 +57,10 @@ def register_view(request):
 
     elif request.method == 'DELETE':
             query_data=UserDetails.objects.filter(id=request.data.get('id'))
+            query_data_login=UserLogin.objects.filter(id=request.data.get('id'))
             if query_data.exists():
                 query_data.delete()
+                query_data_login.delete()
                 return Response({'msg': 'User deleted successfully'}, status=status.HTTP_200_OK)
             return Response({"message": "No user found"}, status=status.HTTP_404_NOT_FOUND)
         
@@ -67,6 +69,10 @@ def register_view(request):
             query_data=UserDetails.objects.get(id=request.data.get('id'))
             serializer = UserSerializer(query_data, data=request.data, partial=True)
             if serializer.is_valid():
+                password = request.data.get('password')
+                if password:
+                     query_data = UserLogin.objects.filter(id=request.data.get('id'))
+                     query_data.update(password=password)
                 serializer.save()
                 return Response({'msg': 'User updated successfully'}, status=status.HTTP_200_OK)
             return Response({"message": "No User found"}, status=status.HTTP_404_NOT_FOUND)
