@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import UserDetails, UserLogin, Products, AdminLogin, Transaction
+from .models import UserDetails, UserLogin, Products, AdminLogin, Transaction, Category, Subcategory
 
 class UserSerializer(serializers.ModelSerializer):
 
@@ -32,6 +32,18 @@ class ProductSerializer(serializers.ModelSerializer):
         model=Products
         fields="__all__"
 
+class CatagorySerializer(serializers.ModelSerializer):
+
+      class Meta:
+        model=Category
+        fields="__all__"
+
+
+class SubCatagorySerializer(serializers.ModelSerializer):
+
+      class Meta:
+        model=Subcategory
+        fields="__all__"
 
 
 class RazorpayOrderSerializer(serializers.Serializer):

@@ -1,0 +1,44 @@
+
+{% extends '../base.html' %}
+{% load static %}
+
+{% block title %}About Us{% endblock %}
+
+{% block content %}
+<div>
+    
+    {% if user.is_authenticated %}
+    <div class="container p-5">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-header text-center">
+                        Profile
+                    </div>
+                    <div class="card-body text-center">
+                        <!-- Profile Picture -->
+                        <img src="{{ user.profile_picture.url }}" alt="Profile Picture" class="img-thumbnail rounded-circle" style="width: 150px; height: 150px;">
+                        <h3 class="mt-3">{{ user.first_name }} </h3>
+                        <p class="text-muted">{{ user.email }}</p>
+    
+                        <!-- Additional Information -->
+                        <div class="mt-3">
+                            <p><strong>Username:</strong> {{ user.username }}</p>
+                        </div>
+    
+                        <!-- Action Buttons -->
+                        <a href="/profile/edit" class="btn btn-primary">Edit Profile</a>
+                        <a href="/password/change" class="btn btn-secondary">Delete account</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+  {% else %}
+    <p>You are not logged in.</p>
+  {% endif %}
+   
+   
+  
+</div>
+{% endblock %}

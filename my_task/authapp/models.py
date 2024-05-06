@@ -1,4 +1,5 @@
 from django.db import models
+from django.contrib.auth.models import User
 
 # Create your models here.
 
@@ -29,12 +30,27 @@ class AdminLogin(models.Model):
 class Products(models.Model):
     product_name=models.CharField(max_length=100)
     category=models.CharField(max_length=100,default="")
+    sub_category=models.CharField(max_length=100,default="")
     price=models.IntegerField(default="0")
     desc=models.CharField(max_length=300)
 
     def __str__(self):
         return self.product_name
     
+class Category(models.Model):
+    name = models.CharField(max_length=255, unique=True)
+    description = models.TextField(blank=True, null=True)
+
+    def __str__(self):
+        return self.name
+
+class Subcategory(models.Model):
+    name = models.CharField(max_length=255)
+    description = models.TextField(blank=True, null=True)
+    category = models.ForeignKey(Category, related_name='subcategories', on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.name
 
 
 class Transaction(models.Model):
@@ -46,3 +62,9 @@ class Transaction(models.Model):
 
     def __str__(self):
         return str(self.id)
+    
+
+
+class Cart(models.Model):
+    user_id = models.CharField(max_length=200)
+    Product_id = models.IntegerField(max_length=200)

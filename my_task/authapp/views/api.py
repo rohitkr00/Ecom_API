@@ -9,18 +9,27 @@ from rest_framework.views import APIView
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.sessions.models import Session
 from django.contrib.auth.hashers import check_password
-from .utils import generate_jwt, decode_token
-from .main import RazorpayClient
+from ..utils import generate_jwt, decode_token
+from ..main import RazorpayClient
 from rest_framework.pagination import PageNumberPagination
 import jwt
 import smtplib
-from .models import UserDetails, UserLogin, Products, AdminLogin, Transaction
-from .serializers import UserSerializer, UserLoginSerializer, ProductSerializer, AdminLoginSerializer, TranscationModelSerializer, RazorpayOrderSerializer
+from ..models import UserDetails, UserLogin, Products, AdminLogin, Transaction, Category, Subcategory
+from ..serializers import (
+UserSerializer, 
+UserLoginSerializer, 
+ProductSerializer, 
+AdminLoginSerializer, 
+TranscationModelSerializer, 
+RazorpayOrderSerializer,
+CatagorySerializer,
+SubCatagorySerializer,
+)
+from django.views import generic
 
 
-
-
-
+# class IndexView(generic.TemplateView):
+#     template_name = 'TestApp/index.html'
 
 # ==============================================================================================
 
@@ -289,3 +298,110 @@ class TransactionView(APIView):
                     "error": transaction_serializer.errors
                 }
                 return Response(response, status=status.HTTP_400_BAD_REQUEST)
+
+
+
+
+
+
+#===================================================Catagory=======================================================
+#===================================================Catagory=======================================================
+#===================================================Catagory=======================================================
+
+
+
+class CatagoryViewset(APIView):
+     
+    def get(self, request):
+        query_data=Category.objects.all()
+        if query_data.exists():
+            task_data=CatagorySerializer(query_data, many=True)
+            return Response(task_data.data, status=status.HTTP_200_OK)
+        return Response({"message": "No Category found"}, status=status.HTTP_404_NOT_FOUND)
+     
+    def post(self, request):
+        data=request.data
+        name=data.get('name')
+
+        if Category.objects.filter(name=name).exists():
+            return Response({
+            "message":"Category is already registered"
+        }, status=status.HTTP_400_BAD_REQUEST)
+
+
+        
+        serializer=CatagorySerializer(data=data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response({
+            "message":"Data is not valid"
+        }, status=status.HTTP_400_BAD_REQUEST)
+    
+
+
+    def patch(self, request):
+            query_data=Category.objects.get(id=request.data.get('id'))
+            serializer = CatagorySerializer(query_data, data=request.data, partial=True)
+            if serializer.is_valid():
+                serializer.save()
+                return Response({'msg': 'category updated successfully'}, status=status.HTTP_200_OK)
+            return Response({"message": "No Category found"}, status=status.HTTP_404_NOT_FOUND)
+    
+
+    def delete(self, request):
+        query_data=Category.objects.filter(id=request.data.get('id'))
+        if query_data.exists():
+            query_data.delete()
+            return Response({'msg': 'Category deleted successfully'}, status=status.HTTP_200_OK)
+        return Response({"message": "No Category found"}, status=status.HTTP_404_NOT_FOUND)
+
+
+
+
+
+#===================================================SubCatagory=======================================================
+#===================================================SubCatagory=======================================================
+#===================================================SubCatagory=======================================================
+
+
+
+
+
+class SubCatagoryViewset(APIView):
+     
+    def get(self, request):
+        query_data=Subcategory.objects.all()
+        if query_data.exists():
+            task_data=SubCatagorySerializer(query_data, many=True)
+            return Response(task_data.data, status=status.HTTP_200_OK)
+        return Response({"message": "No Suncategory found"}, status=status.HTTP_404_NOT_FOUND)
+     
+    def post(self, request):
+        data=request.data
+        
+        serializer=SubCatagorySerializer(data=data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response({
+            "message":"Data is not valid"
+        }, status=status.HTTP_400_BAD_REQUEST)
+    
+
+
+    def patch(self, request):
+            query_data=Subcategory.objects.get(id=request.data.get('id'))
+            serializer = SubCatagorySerializer(query_data, data=request.data, partial=True)
+            if serializer.is_valid():
+                serializer.save()
+                return Response({'msg': 'Subcategory updated successfully'}, status=status.HTTP_200_OK)
+            return Response({"message": "No Subcategory found"}, status=status.HTTP_404_NOT_FOUND)
+    
+
+    def delete(self, request):
+        query_data=Subcategory.objects.filter(id=request.data.get('id'))
+        if query_data.exists():
+            query_data.delete()
+            return Response({'msg': 'Subcategory deleted successfully'}, status=status.HTTP_200_OK)
+        return Response({"message": "No Subcategory found"}, status=status.HTTP_404_NOT_FOUND)

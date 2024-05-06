@@ -3,6 +3,11 @@ from rest_framework.serializers import ValidationError
 from rest_framework import status
 
 
+# from django.contrib.auth.backends import BaseBackend
+# from django.contrib.auth.hashers import check_password  # For password verification
+# from .models import UserDetails  # Your custom user model
+
+
 class RazorpayClient:
 
     def create_order(self, amount, currency):
@@ -37,3 +42,23 @@ class RazorpayClient:
                 }
             )
             
+
+
+
+
+# class CustomAuthBackend(BaseBackend):
+#     def authenticate(self, request, username=None, password=None, **kwargs):
+#         try:
+#             # Try to find a user by username (or email, depending on your needs)
+#             user = UserDetails.objects.get(email=username)
+#             # Check if the password matches
+#             if check_password(password, user.password):
+#                 return user
+#         except UserDetails.DoesNotExist:
+#             return None
+
+#     def get_user(self, user_id):
+#         try:
+#             return UserDetails.objects.get(pk=user_id)
+#         except UserDetails.DoesNotExist:
+#             return None

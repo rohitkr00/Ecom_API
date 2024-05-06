@@ -12,7 +12,7 @@ https://docs.djangoproject.com/en/4.1/ref/settings/
 
 from pathlib import Path
 from datetime import timedelta
-import dj_database_url
+# import dj_database_url
 import os
 
 
@@ -41,14 +41,18 @@ SIMPLE_JWT = {
 # Application definition
 
 INSTALLED_APPS = [
+    'adminlte3',
+    'adminlte3_theme',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    
     'authapp',
     'rest_framework',
+    
 ]
 
 MIDDLEWARE = [
@@ -135,7 +139,8 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/4.1/howto/static-files/
 
 STATIC_URL = 'static/'
-MEDIA_URL = 'media/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+# MEDIA_URL = 'media/'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field
@@ -153,3 +158,8 @@ REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS' : 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE' : 3
 }
+
+# AUTHENTICATION_BACKENDS = [
+#     'authapp.main.CustomAuthBackend',  # Correct path to your custom backend
+#     'django.contrib.auth.backends.ModelBackend',  # Optional: keep default backend
+# ]
