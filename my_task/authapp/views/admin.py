@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import UserDetails, UserLogin, Products, AdminLogin, Transaction, Category, Subcategory
+from ..models import UserDetails, UserLogin, Products, AdminLogin, Transaction, Category, Subcategory, Cart
 
 # Register your models here.
 admin.site.register(UserDetails)
@@ -9,3 +9,4 @@ admin.site.register(Products)
 admin.site.register(AdminLogin)
 admin.site.register(Transaction)
 admin.site.register(Category)
+admin.site.register(Cart)

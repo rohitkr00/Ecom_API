@@ -33,6 +33,7 @@ class Products(models.Model):
     sub_category=models.CharField(max_length=100,default="")
     price=models.IntegerField(default="0")
     desc=models.CharField(max_length=300)
+    product_image = models.ImageField(upload_to='product_images', default="null")
 
     def __str__(self):
         return self.product_name
@@ -68,3 +69,4 @@ class Transaction(models.Model):
 class Cart(models.Model):
     user_id = models.CharField(max_length=200)
     Product_id = models.IntegerField(max_length=200)
+    quantity = models.IntegerField(max_length=200, default=1)

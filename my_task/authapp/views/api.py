@@ -1,5 +1,5 @@
 from django.shortcuts import render
-
+from django.contrib.auth.models import User
 # Create your views here.from django.shortcuts import render
 from rest_framework import status
 from rest_framework import viewsets
@@ -7,6 +7,7 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.hashers import check_password
 from django.contrib.sessions.models import Session
 from django.contrib.auth.hashers import check_password
 from ..utils import generate_jwt, decode_token
@@ -24,21 +25,19 @@ TranscationModelSerializer,
 RazorpayOrderSerializer,
 CatagorySerializer,
 SubCatagorySerializer,
+UserDefaultSerializer,
 )
 from django.views import generic
 
-
-# class IndexView(generic.TemplateView):
-#     template_name = 'TestApp/index.html'
 
 # ==============================================================================================
 
 class UserViewset(APIView):
      
     def get(self, request):
-        query_data=UserDetails.objects.all()
+        query_data=User.objects.all()
         if query_data.exists():
-            task_data=UserSerializer(query_data, many=True)
+            task_data=UserDefaultSerializer(query_data, many=True)
             return Response(task_data.data, status=status.HTTP_200_OK)
         return Response({"message": "No User found"}, status=status.HTTP_404_NOT_FOUND)
      
@@ -47,21 +46,20 @@ class UserViewset(APIView):
         email1=data.get('email')
         password1=data.get('password')
 
-        if UserLogin.objects.filter(email=email1).exists():
+        if User.objects.filter(email=email1).exists():
             return Response({
             "message":"email is already registered"
         }, status=status.HTTP_400_BAD_REQUEST)
 
 
-        data2={'email':email1, 'password': password1}
-        serializer=UserSerializer(data=data)
+        serializer=UserDefaultSerializer(data=data)
         if serializer.is_valid():
             serializer.save()
-            data11=UserLogin.objects.create(
-            email=email1,
-            password=password1
-        )
-            data11.save() 
+        #     data11=UserLogin.objects.create(
+        #     email=email1,
+        #     password=password1
+        # )
+            # data11.save() 
             # print(serializer_login)
             # serializer_login.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
@@ -72,24 +70,24 @@ class UserViewset(APIView):
 
 
     def patch(self, request):
-            query_data=UserDetails.objects.get(id=request.data.get('id'))
-            serializer = UserSerializer(query_data, data=request.data, partial=True)
+            query_data=User.objects.get(id=request.data.get('id'))
+            serializer = UserDefaultSerializer(query_data, data=request.data, partial=True)
             if serializer.is_valid():
-                password = request.data.get('password')
-                if password:
-                     query_data = UserLogin.objects.filter(id=request.data.get('id'))
-                     query_data.update(password=password)
+                # password = request.data.get('password')
+                # if password:
+                #      query_data = UserLogin.objects.filter(id=request.data.get('id'))
+                #      query_data.update(password=password)
                 serializer.save()
                 return Response({'msg': 'User updated successfully'}, status=status.HTTP_200_OK)
             return Response({"message": "No User found"}, status=status.HTTP_404_NOT_FOUND)
     
 
     def delete(self, request):
-        query_data=UserDetails.objects.filter(id=request.data.get('id'))
-        query_data_login=UserLogin.objects.filter(id=request.data.get('id'))
+        query_data=User.objects.filter(id=request.data.get('id'))
+        # query_data_login=UserLogin.objects.filter(id=request.data.get('id'))
         if query_data.exists():
             query_data.delete()
-            query_data_login.delete()
+            # query_data_login.delete()
             return Response({'msg': 'User deleted successfully'}, status=status.HTTP_200_OK)
         return Response({"message": "No user found"}, status=status.HTTP_404_NOT_FOUND)
 
@@ -98,23 +96,23 @@ class UserViewset(APIView):
 # =========================================================================================================
 # =========================================================================================================
 
-class AdminRegister(APIView):
-    def post(self, request):
-        data = request.data
-        email1 = data.get('email')
+# class AdminRegister(APIView):
+#     def post(self, request):
+#         data = request.data
+#         email1 = data.get('email')
 
-        if AdminLogin.objects.filter(email=email1).exists():
-            return Response({
-                "message":"email is already registered"
-            }, status=status.HTTP_400_BAD_REQUEST)
-        else:
-            serializer = AdminLoginSerializer(data=data)
-            if serializer.is_valid():
-                serializer.save()
-                return Response(serializer.data, status=status.HTTP_200_OK)
-            return Response({
-                "message":"Data is not valid"
-            }, status=status.HTTP_400_BAD_REQUEST)
+#         if AdminLogin.objects.filter(email=email1).exists():
+#             return Response({
+#                 "message":"email is already registered"
+#             }, status=status.HTTP_400_BAD_REQUEST)
+#         else:
+#             serializer = AdminLoginSerializer(data=data)
+#             if serializer.is_valid():
+#                 serializer.save()
+#                 return Response(serializer.data, status=status.HTTP_200_OK)
+#             return Response({
+#                 "message":"Data is not valid"
+#             }, status=status.HTTP_400_BAD_REQUEST)
 
 
 
@@ -122,48 +120,49 @@ class AdminRegister(APIView):
 class LoginViewset(APIView):
 
     def post(self, request):
-        # how to store response in local storage in react
+        
         data = request.data
         email = data.get("email")
         password = data.get("password")
-        admin_login_data = AdminLogin.objects.filter(email=email, password=password)
-        login_data = UserLogin.objects.filter(email=email, password=password)
+        # admin_login_data = AdminLogin.objects.filter(email=email, password=password)
+        try:
+            user = User.objects.get(email=email)
+        except User.DoesNotExist:
+            return Response(response, status=status.HTTP_400_BAD_REQUEST)
         # user_data = UserLoginSerializer(user)
         # print(user_data.data)
 
-        if admin_login_data:
-            user = authenticate(request, username=email, password=password)
-            if user is not None:
-                login(request, user)
-                # set user-specific data in the session
-                request.session['username'] = email
-                request.session['is_logged_in'] = True
-                request.session.save()
-                return Response({"message": "login success"}, status=status.HTTP_200_OK)
-            else:
+        if check_password(password, user.password):
+            login(request, user)
+            # set user-specific data in the session
+            request.session['username'] = email
+            request.session['is_logged_in'] = True
+            request.session.save()
+            return Response({"message": "login success"}, status=status.HTTP_200_OK)
+        else:
                 response={
             "message": "Authentication failed for admin",
             }
-            return Response(response, status=status.HTTP_400_BAD_REQUEST)
+        return Response(response, status=status.HTTP_400_BAD_REQUEST)
 
 
-
-        elif login_data:
-            token = generate_jwt(data)
-            queryset=UserDetails.objects.get(email=data.get("email"))
-            user_data=UserSerializer(queryset)
-            response = {
-            "meggage": "Logined success",
-            "jwt": token,
-            "u_data": user_data.data
-            }
-            # response.set_cookie(key="jwt", value=token)
-            return Response(response, status=status.HTTP_200_OK)
-        else:
-            response={
-            "meggage": "Invalid Username or Password",
-            }
-            return Response(response, status=status.HTTP_400_BAD_REQUEST)
+# this is for token authentication 
+        # elif login_data:
+        #     token = generate_jwt(data)
+        #     queryset=UserDetails.objects.get(email=data.get("email"))
+        #     user_data=UserSerializer(queryset)
+        #     response = {
+        #     "meggage": "Logined success",
+        #     "jwt": token,
+        #     "u_data": user_data.data
+        #     }
+        #     # response.set_cookie(key="jwt", value=token)
+        #     return Response(response, status=status.HTTP_200_OK)
+        # else:
+        #     response={
+        #     "meggage": "Invalid Username or Password",
+        #     }
+        #     return Response(response, status=status.HTTP_400_BAD_REQUEST)
         
 
 # ==========================================================================================================

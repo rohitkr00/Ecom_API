@@ -18,7 +18,7 @@ from .views import web, api
 urlpatterns = [
     path('register_view/', api.UserViewset.as_view()),
     path('login_view/', api.LoginViewset.as_view()),
-    path('admin_register/', api.AdminRegister.as_view()),
+    # path('admin_register/', api.AdminRegister.as_view()),
     path('register_product/', api.RegisterProduct.as_view()),
     path('product_search/', api.ProductSearch.as_view()),
     path('user_search/', api.UserSearch.as_view()),
@@ -37,6 +37,7 @@ urlpatterns = [
     path('profile/', web.profile, name='profile'),
     path('cart/', web.cart, name='cart'),
     path('cart_delete/', web.cart_delete, name='cart_delete'),
+    path('create_order/', web.create_order, name='create_order'),
     
 
     # Add other URLs as needed

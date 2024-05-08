@@ -30,9 +30,9 @@
                 <a class="nav-link me-4" href="{% url 'product' %}">Products</a>
               </li>
               {% if request.user.is_authenticated %}
-              <li class="nav-item">
+              {% comment %} <li class="nav-item">
                 <a class="nav-link me-4" href="{% url 'profile' %}">Profile</a>
-              </li>
+              </li> {% endcomment %}
               <li class="nav-item">
                 <a class="nav-link me-4" href="{% url 'logout' %}">Logout</a>
               </li>
@@ -54,7 +54,7 @@
                   <input type="submit" value="search" class="border-0 rounded-1"></form>
               </li>
 
-              <li class="nav-item dropdown">
+              {% comment %} <li class="nav-item dropdown">
                 <a class="nav-link me-4 dropdown-toggle link-dark" data-bs-toggle="dropdown" href="#" role="button" aria-expanded="false">Pages</a>
                 <ul class="dropdown-menu">
                   <li><a href="{% url 'home' %}" class="dropdown-item">About</a></li>
@@ -66,7 +66,7 @@
                   <li><a href="{% url 'home' %}" class="dropdown-item">Single Product</a></li>
                   <li><a href="{% url 'home' %}" class="dropdown-item">Contact</a></li>
                 </ul>
-              </li>
+              </li> {% endcomment %}
               <li class="nav-item">
                 <div class="user-items ps-5">
                   <ul class="d-flex justify-content-end list-unstyled">
