@@ -27,16 +27,14 @@ SIMPLE_JWT = {
 # Application definition
 
 INSTALLED_APPS = [
-    # 'adminlte3',
-    # 'adminlte3_theme',
+    'adminlte3_theme',
+    'adminlte3',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    # 'django_crontab',
-    # 'django_celery_beat',
     'authapp',
     'rest_framework',
     
@@ -57,7 +55,7 @@ ROOT_URLCONF = 'my_task.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': ["templates"],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -116,6 +114,7 @@ USE_TZ = True
 STATIC_URL = 'static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 MEDIA_URL = 'media/'
+MEDIA_ROOT =os.path.join(BASE_DIR,"media")
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 

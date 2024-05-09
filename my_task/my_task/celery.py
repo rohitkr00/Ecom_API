@@ -19,7 +19,7 @@ app.autodiscover_tasks(lambda: settings.INSTALLED_APPS)
 app.conf.beat_schedule = {
     'add-every-2-hour':{
         'task': 'send_notification',
-        'schedule': crontab(minute='*/5')
+        'schedule': crontab(minute='*/1')
     }
 }
 
