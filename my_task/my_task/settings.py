@@ -2,6 +2,8 @@ from pathlib import Path
 from datetime import timedelta
 import os
 from celery.schedules import crontab
+from django.contrib.messages import constants as message_constants
+
 
 
 
@@ -70,6 +72,8 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'my_task.wsgi.application'
 
+
+MESSAGE_STORAGE = 'django.contrib.messages.storage.fallback.FallbackStorage'
 
 DATABASES = {
     'default': {
@@ -154,3 +158,7 @@ CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
 #         'schedule': crontab(minute='*'),  # Every hour
 #     },
 # }
+
+
+#  celery -A my_task worker -l info -P eventlet
+#  celery -A my_task worker -l info -P eventlet

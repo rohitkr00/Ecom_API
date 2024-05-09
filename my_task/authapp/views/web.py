@@ -10,6 +10,7 @@ from django.http import JsonResponse
 from django.core.exceptions import ObjectDoesNotExist
 import json
 from django.views.decorators.csrf import csrf_exempt
+from django.contrib import messages
 
 
 
@@ -61,24 +62,24 @@ def handlelogin(request):
         userpassword=request.POST.get('password')
 
         if User.objects.filter(email=username).exists() is False:
-            print("user not exists")
+            messages.warning(request, 'user is not registered')
             return render(request,"ecomapp/home.html", {"message":"user is not registered"})
 
         print(userpassword)
         myuser = authenticate(username=username, password=userpassword)
-        print(myuser)
+        
 
         if myuser is not None:
             
             user = User.objects.filter(username=username)
             # messages.success(request,"Login Success")
-            print("logined")
+            
             login(request, myuser)
             return render(request,"ecomapp/home.html", {"user": user})
         
         else:
             # messages.error(request,"Invalid Credentials")
-            print("Not logind")
+            
             return render(request, "ecomapp/home.html")
         
         # return render(request,"login.html")
@@ -97,7 +98,8 @@ def handlelogout(request):
 def product(request):
     if request.method == "GET":    
         products = Products.objects.all()  # Retrieve all products from the database
-        return render(request, 'ecomapp/products.html', {'products': products})
+        Category_item = Category.objects.all()
+        return render(request, 'ecomapp/products.html', {'products': products, 'catagory': Category_item})
     elif request.method == "POST":
         product_for_search = request.POST.get('name')
         search_product = Products.objects.filter(product_name__icontains = product_for_search)
