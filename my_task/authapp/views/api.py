@@ -1,5 +1,6 @@
 from django.shortcuts import render
 from django.contrib.auth.models import User
+import logging
 # Create your views here.from django.shortcuts import render
 from rest_framework import status
 from rest_framework import viewsets
@@ -29,67 +30,82 @@ UserDefaultSerializer,
 )
 from django.views import generic
 
-
+logger = logging.getLogger(__name__)
 # ==============================================================================================
 
 class UserViewset(APIView):
+
+    def get_serializer(self, *args, **kwargs):
+        return UserDefaultSerializer(*args, **kwargs)
+    
+    def get_querydata(self, *args, **kwargs):
+        return User.objects.filter(*args, **kwargs)
      
     def get(self, request):
-        query_data=User.objects.all()
-        if query_data.exists():
-            task_data=UserDefaultSerializer(query_data, many=True)
-            return Response(task_data.data, status=status.HTTP_200_OK)
-        return Response({"message": "No User found"}, status=status.HTTP_404_NOT_FOUND)
-     
+        try:
+            query_data=self.get_querydata()
+            if query_data.exists():
+                serializer=self.get_serializer(query_data, many=True)
+                return Response(serializer.data, status=status.HTTP_200_OK)
+            return Response({"message": "No User found"}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as ex:
+            logger.error("Error fetching users", exc_info=True)
+            return Response({"error": "Internal server error"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
     def post(self, request):
-        data=request.data
-        email1=data.get('email')
-        password1=data.get('password')
+        try:
+            data=request.data
+            email1=data.get('email')
+            password1=data.get('password')
 
-        if User.objects.filter(email=email1).exists():
+            if self.get_querydata(email=email1).exists():
+                return Response({
+                "message":"email is already registered"
+            }, status=status.HTTP_400_BAD_REQUEST)
+            serializer=self.get_serializer(data=data)
+
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data, status=status.HTTP_200_OK)
             return Response({
-            "message":"email is already registered"
-        }, status=status.HTTP_400_BAD_REQUEST)
-
-
-        serializer=UserDefaultSerializer(data=data)
-        if serializer.is_valid():
-            serializer.save()
-        #     data11=UserLogin.objects.create(
-        #     email=email1,
-        #     password=password1
-        # )
-            # data11.save() 
-            # print(serializer_login)
-            # serializer_login.save()
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        return Response({
-            "message":"Data is not valid"
-        }, status=status.HTTP_400_BAD_REQUEST)
-    
+                "message":"Data is not valid"
+            }, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as ex:
+            logger.error("Error fetching users", exc_info=True)
+            return Response({"error": "Internal server error"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
 
 
     def patch(self, request):
-            query_data=User.objects.get(id=request.data.get('id'))
-            serializer = UserDefaultSerializer(query_data, data=request.data, partial=True)
-            if serializer.is_valid():
-                # password = request.data.get('password')
-                # if password:
-                #      query_data = UserLogin.objects.filter(id=request.data.get('id'))
-                #      query_data.update(password=password)
-                serializer.save()
-                return Response({'msg': 'User updated successfully'}, status=status.HTTP_200_OK)
-            return Response({"message": "No User found"}, status=status.HTTP_404_NOT_FOUND)
-    
+            try:
+                data = request.data
+                user_id = data.get('id')
+                print(user_id)
+                user=self.get_querydata(id=user_id).first()
+                # current_user = user.first()
+                print(user)
+                serializer = self.get_serializer(user, data=request.data, partial=True)
+                if serializer.is_valid():
+                    serializer.save()
+                    return Response({'msg': 'User updated successfully'}, status=status.HTTP_200_OK)
+                return Response({"message": "No User found"}, status=status.HTTP_404_NOT_FOUND)
+            except Exception as ex:
+                logger.error("Error fetching users", exc_info=True)
+                return Response({"error": "Internal server error"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
 
     def delete(self, request):
-        query_data=User.objects.filter(id=request.data.get('id'))
-        # query_data_login=UserLogin.objects.filter(id=request.data.get('id'))
-        if query_data.exists():
-            query_data.delete()
-            # query_data_login.delete()
-            return Response({'msg': 'User deleted successfully'}, status=status.HTTP_200_OK)
-        return Response({"message": "No user found"}, status=status.HTTP_404_NOT_FOUND)
+        try:
+            user=self.get_querydata(id=request.data.get('id'))
+            # query_data_login=UserLogin.objects.filter(id=request.data.get('id'))
+            if user.exists():
+                user.delete()
+                # query_data_login.delete()
+                return Response({'msg': 'User deleted successfully'}, status=status.HTTP_200_OK)
+            return Response({"message": "No user found"}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as ex:
+            logger.error("Error fetching users", exc_info=True)
+            return Response({"error": "Internal server error"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     
 # =========================================================================================================
@@ -118,32 +134,35 @@ class UserViewset(APIView):
 
 
 class LoginViewset(APIView):
+    def get_querydata(self, *args, **kwargs):
+         return User.objects.filter(*args, **kwargs)
 
     def post(self, request):
-        
         data = request.data
         email = data.get("email")
         password = data.get("password")
         # admin_login_data = AdminLogin.objects.filter(email=email, password=password)
         try:
-            user = User.objects.get(email=email)
-        except User.DoesNotExist:
-            return Response(response, status=status.HTTP_400_BAD_REQUEST)
-        # user_data = UserLoginSerializer(user)
-        # print(user_data.data)
-
-        if check_password(password, user.password):
-            login(request, user)
+            user = self.get_querydata(email=email).first()
+            if check_password(password, user.password):
+                login(request, user)
             # set user-specific data in the session
-            request.session['username'] = email
-            request.session['is_logged_in'] = True
-            request.session.save()
-            return Response({"message": "login success"}, status=status.HTTP_200_OK)
-        else:
+                request.session['username'] = email
+                request.session['is_logged_in'] = True
+                request.session.save()
+                return Response({"message": "login success"}, status=status.HTTP_200_OK)
+            else:
                 response={
             "message": "Authentication failed for admin",
             }
-        return Response(response, status=status.HTTP_400_BAD_REQUEST)
+            return Response(response, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as ex:
+            logger.error("Error in login", exc_info=True)
+            return Response({"error": "Internal server error"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        # user_data = UserLoginSerializer(user)
+        # print(user_data.data)
+
+        
 
 
 # this is for token authentication 
@@ -171,44 +190,68 @@ class LoginViewset(APIView):
 
 
 class RegisterProduct(APIView):
+
+    def get_serializer(self, *args, **kwargs):
+        return ProductSerializer(*args, **kwargs)
+    
+    def get_querydata(self, *args, **kwargs):
+        return Products.objects.filter(*args, **kwargs)
+    
     def post(self, request):
         data = request.data
-        serializer = ProductSerializer(data=data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response({"message" : "product inserted succesfully"}, status=status.HTTP_200_OK)
-        else:
-            response={
-        "meggage": "Invalid data",
-        }
-        return Response(response, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            serializer = self.get_serializer(data=data)
+            if serializer.is_valid():
+                serializer.save()
+                return Response({"message" : "product inserted succesfully"}, status=status.HTTP_200_OK)
+            else:
+                response={
+            "meggage": "Invalid data",
+            }
+            return Response(response, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as ex:
+            logger.error("Error in registration", exc_info=True)
+            return Response({"error": "Internal server error"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
 
     def get(self, request):
-        query_data=Products.objects.all()
-        if query_data.exists():
-            paginator = PageNumberPagination()
-            paginator.page_size = 2
-            paginationdata = paginator.paginate_queryset(query_data, request)
-            serializer=ProductSerializer(paginationdata, many=True)
-            return paginator.get_paginated_response(serializer.data)
-        return Response({"message": "No User found"}, status=status.HTTP_404_NOT_FOUND)
+        try:
+            query_data=self.get_querydata()
+            if query_data.exists():
+                paginator = PageNumberPagination()
+                paginator.page_size = 2
+                paginationdata = paginator.paginate_queryset(query_data, request)
+                serializer=self.get_serializer(paginationdata, many=True)
+                return paginator.get_paginated_response(serializer.data)
+            return Response({"message": "No Product found"}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as ex:
+            logger.error("Error fetching Products", exc_info=True)
+            return Response({"error": "Internal server error"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
     
 
     def delete(self, request):
-        query_data=Products.objects.filter(id=request.data.get('id'))
-        if query_data.exists():
-            query_data.delete()
-            return Response({'msg': 'Product deleted successfully'}, status=status.HTTP_200_OK)
-        return Response({"message": "No product found"}, status=status.HTTP_404_NOT_FOUND)
+        try:
+            query_data=self.get_querydata(id=request.data.get('id')).first()
+            if query_data.exists():
+                query_data.delete()
+                return Response({'msg': 'Product deleted successfully'}, status=status.HTTP_200_OK)
+            return Response({"message": "No product found"}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as ex:
+            logger.error("Error fetching Products", exc_info=True)
+            return Response({"error": "Internal server error"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
     
 
     def patch(self, request):
-        query_data=Products.objects.get(id=request.data.get('id'))
-        serializer = ProductSerializer(query_data, data=request.data, partial=True)
-        if serializer.is_valid():
-            serializer.save()
-            return Response({'msg': 'Product updated successfully'}, status=status.HTTP_200_OK)
-        return Response({"message": "No product found"}, status=status.HTTP_404_NOT_FOUND)
+        try:
+            query_data=self.get_querydata(id=request.data.get('id')).first()
+            serializer = self.get_serializer(query_data, data=request.data, partial=True)
+            if serializer.is_valid():
+                serializer.save()
+                return Response({'msg': 'Product updated successfully'}, status=status.HTTP_200_OK)
+            return Response({"message": "No product found"}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as ex:
+            logger.error("Error fetching Products", exc_info=True)
+            return Response({"error": "Internal server error"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 
@@ -217,28 +260,48 @@ class RegisterProduct(APIView):
 # ==================================================================================================================
     
 class ProductSearch(APIView):
+    def get_serializer(self, *args, **kwargs):
+        return ProductSerializer(*args, **kwargs)
+    
+    def get_querydata(self, *args, **kwargs):
+        return Products.objects.filter(*args, **kwargs)
+    
     def post(self, request):
-        if request.data is None:
-            return Response({"message": "Please Enter data which you want to find"}, status=status.HTTP_404_NOT_FOUND)
-        if request.method == "POST":
-            data = request.data.get('name')
-            query_data = Products.objects.filter(product_name__icontains=data)
-            if query_data.exists():
-                task_data = ProductSerializer(query_data, many=True)
-                return Response(task_data.data, status=status.HTTP_200_OK)
-            return Response({"message": "No data found"}, status=status.HTTP_404_NOT_FOUND)
+        try:
+            if request.data is None:
+                return Response({"message": "Please Enter data which you want to find"}, status=status.HTTP_404_NOT_FOUND)
+            if request.method == "POST":
+                data = request.data.get('name')
+                query_data = self.get_querydata(product_name__icontains=data)
+                if query_data.exists():
+                    serializer = self.get_serializer(query_data, many=True)
+                    return Response(serializer.data, status=status.HTTP_200_OK)
+                return Response({"message": "No data found"}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as ex:
+            logger.error("Error fetching Products", exc_info=True)
+            return Response({"error": "Internal server error"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
     
 
     
 class UserSearch(APIView):
+    def get_serializer(self, *args, **kwargs):
+        return UserDefaultSerializer(*args, **kwargs)
+    
+    def get_querydata(self, *args, **kwargs):
+        return User.objects.filter(*args, **kwargs)
+    
     def post(self, request):
-        if request.method == "POST":
-            data = request.data.get('name')
-            query_data = UserDetails.objects.filter(name__icontains=data)
-            if query_data.exists():
-                task_data = UserSerializer(query_data, many=True)
-                return Response(task_data.data, status=status.HTTP_200_OK)
-            return Response({"message": "No data found"}, status=status.HTTP_404_NOT_FOUND)
+        try:
+            if request.method == "POST":
+                data = request.data.get('name')
+                query_data = self.get_querydata(name__icontains=data)
+                if query_data.exists():
+                    serializer = self.get_serializer(query_data, many=True)
+                    return Response(serializer.data, status=status.HTTP_200_OK)
+                return Response({"message": "No data found"}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as ex:
+            logger.error("Error fetching Products", exc_info=True)
+            return Response({"error": "Internal server error"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
     
 
 #===================================================Razorpay=======================================================
@@ -247,56 +310,69 @@ class UserSearch(APIView):
 
 
 class OrderInitiate(APIView):
+    def get_serializer(self, *args, **kwargs):
+        return RazorpayOrderSerializer(*args, **kwargs)
     
     def post(self, request):
-        razorpay_order_serializer = RazorpayOrderSerializer(
-                data=request.data
-            )
-        if razorpay_order_serializer.is_valid():
-                rz_client = RazorpayClient()
-                order_response = rz_client.create_order(
-                    amount=razorpay_order_serializer.validated_data.get("amount"),
-                    currency=razorpay_order_serializer.validated_data.get("currency")
+        try:
+            razorpay_order_serializer = self.get_serializer(
+                    data=request.data
                 )
-                response = {
-                    "status_code": status.HTTP_201_CREATED,
-                    "message": "order created",
-                    "data": order_response,
-                    
-                }
-                return Response(response, status=status.HTTP_201_CREATED)
-        else:
-                response = {
-                    "status_code": status.HTTP_400_BAD_REQUEST,
-                    "message": "bad request",
-                    "error": razorpay_order_serializer.errors
-                }
-                return Response(response, status=status.HTTP_400_BAD_REQUEST)
+            if razorpay_order_serializer.is_valid():
+                    rz_client = RazorpayClient()
+                    order_response = rz_client.create_order(
+                        amount=razorpay_order_serializer.validated_data.get("amount"),
+                        currency=razorpay_order_serializer.validated_data.get("currency")
+                    )
+                    response = {
+                        "status_code": status.HTTP_201_CREATED,
+                        "message": "order created",
+                        "data": order_response,
+                        
+                    }
+                    return Response(response, status=status.HTTP_201_CREATED)
+            else:
+                    response = {
+                        "status_code": status.HTTP_400_BAD_REQUEST,
+                        "message": "bad request",
+                        "error": razorpay_order_serializer.errors
+                    }
+                    return Response(response, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as ex:
+            logger.error("Error in creating order", exc_info=True)
+            return Response({"error": "Internal server error"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 class TransactionView(APIView):
+    def get_serializer(self, *args, **kwargs):
+        return TranscationModelSerializer(*args, **kwargs)
+    
     def post(self, request):
-        transaction_serializer = TranscationModelSerializer(data=request.data)
-        if transaction_serializer.is_valid():
-                rz_client = RazorpayClient()
-                rz_client.verify_payment_signature(
-                    razorpay_payment_id = transaction_serializer.validated_data.get("payment_id"),
-                    razorpay_order_id = transaction_serializer.validated_data.get("order_id"),
-                    razorpay_signature = transaction_serializer.validated_data.get("signature")
-                )
-                transaction_serializer.save()
-                response = {
-                    "status_code": status.HTTP_201_CREATED,
-                    "message": "transaction created"
-                }
-                return Response(response, status=status.HTTP_201_CREATED)
-        else:
-                response = {
-                    "status_code": status.HTTP_400_BAD_REQUEST,
-                    "message": "bad request",
-                    "error": transaction_serializer.errors
-                }
-                return Response(response, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            transaction_serializer = self.get_serializer(data=request.data)
+            if transaction_serializer.is_valid():
+                    rz_client = RazorpayClient()
+                    rz_client.verify_payment_signature(
+                        razorpay_payment_id = transaction_serializer.validated_data.get("payment_id"),
+                        razorpay_order_id = transaction_serializer.validated_data.get("order_id"),
+                        razorpay_signature = transaction_serializer.validated_data.get("signature")
+                    )
+                    transaction_serializer.save()
+                    response = {
+                        "status_code": status.HTTP_201_CREATED,
+                        "message": "transaction created"
+                    }
+                    return Response(response, status=status.HTTP_201_CREATED)
+            else:
+                    response = {
+                        "status_code": status.HTTP_400_BAD_REQUEST,
+                        "message": "bad request",
+                        "error": transaction_serializer.errors
+                    }
+                    return Response(response, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as ex:
+            logger.error("Error fetching users", exc_info=True)
+            return Response({"error": "Internal server error"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 
@@ -312,49 +388,64 @@ class TransactionView(APIView):
 class CatagoryViewset(APIView):
      
     def get(self, request):
-        query_data=Category.objects.all()
-        if query_data.exists():
-            task_data=CatagorySerializer(query_data, many=True)
-            return Response(task_data.data, status=status.HTTP_200_OK)
-        return Response({"message": "No Category found"}, status=status.HTTP_404_NOT_FOUND)
+        try:
+            query_data=Category.objects.all()
+            if query_data.exists():
+                task_data=CatagorySerializer(query_data, many=True)
+                return Response(task_data.data, status=status.HTTP_200_OK)
+            return Response({"message": "No Category found"}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as ex:
+            logger.error("Error fetching it", exc_info=True)
+            return Response({"error": "Internal server error"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
      
     def post(self, request):
         data=request.data
-        name=data.get('name')
+        try:
+            name=data.get('name')
 
-        if Category.objects.filter(name=name).exists():
+            if Category.objects.filter(name=name).exists():
+                return Response({
+                "message":"Category is already registered"
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+
+            
+            serializer=CatagorySerializer(data=data)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data, status=status.HTTP_200_OK)
             return Response({
-            "message":"Category is already registered"
-        }, status=status.HTTP_400_BAD_REQUEST)
-
-
-        
-        serializer=CatagorySerializer(data=data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        return Response({
-            "message":"Data is not valid"
-        }, status=status.HTTP_400_BAD_REQUEST)
+                "message":"Data is not valid"
+            }, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as ex:
+            logger.error("Error fetching it", exc_info=True)
+            return Response({"error": "Internal server error"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
     
 
 
     def patch(self, request):
-            query_data=Category.objects.get(id=request.data.get('id'))
-            serializer = CatagorySerializer(query_data, data=request.data, partial=True)
-            if serializer.is_valid():
-                serializer.save()
-                return Response({'msg': 'category updated successfully'}, status=status.HTTP_200_OK)
-            return Response({"message": "No Category found"}, status=status.HTTP_404_NOT_FOUND)
-    
+            try:
+                query_data=Category.objects.get(id=request.data.get('id'))
+                serializer = CatagorySerializer(query_data, data=request.data, partial=True)
+                if serializer.is_valid():
+                    serializer.save()
+                    return Response({'msg': 'category updated successfully'}, status=status.HTTP_200_OK)
+                return Response({"message": "No Category found"}, status=status.HTTP_404_NOT_FOUND)
+            except Exception as ex:
+                logger.error("Error fetching users", exc_info=True)
+                return Response({"error": "Internal server error"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
 
     def delete(self, request):
-        query_data=Category.objects.filter(id=request.data.get('id'))
-        if query_data.exists():
-            query_data.delete()
-            return Response({'msg': 'Category deleted successfully'}, status=status.HTTP_200_OK)
-        return Response({"message": "No Category found"}, status=status.HTTP_404_NOT_FOUND)
-
+        try:
+            query_data=Category.objects.filter(id=request.data.get('id'))
+            if query_data.exists():
+                query_data.delete()
+                return Response({'msg': 'Category deleted successfully'}, status=status.HTTP_200_OK)
+            return Response({"message": "No Category found"}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as ex:
+            logger.error("Error in delete category", exc_info=True)
+            return Response({"error": "Internal server error"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 
@@ -370,37 +461,52 @@ class CatagoryViewset(APIView):
 class SubCatagoryViewset(APIView):
      
     def get(self, request):
-        query_data=Subcategory.objects.all()
-        if query_data.exists():
-            task_data=SubCatagorySerializer(query_data, many=True)
-            return Response(task_data.data, status=status.HTTP_200_OK)
-        return Response({"message": "No Suncategory found"}, status=status.HTTP_404_NOT_FOUND)
+        try:
+            query_data=Subcategory.objects.all()
+            if query_data.exists():
+                task_data=SubCatagorySerializer(query_data, many=True)
+                return Response(task_data.data, status=status.HTTP_200_OK)
+            return Response({"message": "No Suncategory found"}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as ex:
+            logger.error("Error fetching Category", exc_info=True)
+            return Response({"error": "Internal server error"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
      
     def post(self, request):
         data=request.data
-        
-        serializer=SubCatagorySerializer(data=data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        return Response({
-            "message":"Data is not valid"
-        }, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            serializer=SubCatagorySerializer(data=data)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data, status=status.HTTP_200_OK)
+            return Response({
+                "message":"Data is not valid"
+            }, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as ex:
+            logger.error("Error fetching users", exc_info=True)
+            return Response({"error": "Internal server error"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
     
 
 
     def patch(self, request):
+        try:
             query_data=Subcategory.objects.get(id=request.data.get('id'))
             serializer = SubCatagorySerializer(query_data, data=request.data, partial=True)
             if serializer.is_valid():
                 serializer.save()
                 return Response({'msg': 'Subcategory updated successfully'}, status=status.HTTP_200_OK)
             return Response({"message": "No Subcategory found"}, status=status.HTTP_404_NOT_FOUND)
-    
+        except Exception as ex:
+            logger.error("Error fetching users", exc_info=True)
+            return Response({"error": "Internal server error"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 
     def delete(self, request):
-        query_data=Subcategory.objects.filter(id=request.data.get('id'))
-        if query_data.exists():
-            query_data.delete()
-            return Response({'msg': 'Subcategory deleted successfully'}, status=status.HTTP_200_OK)
-        return Response({"message": "No Subcategory found"}, status=status.HTTP_404_NOT_FOUND)
+        try:
+            query_data=Subcategory.objects.filter(id=request.data.get('id'))
+            if query_data.exists():
+                query_data.delete()
+                return Response({'msg': 'Subcategory deleted successfully'}, status=status.HTTP_200_OK)
+            return Response({"message": "No Subcategory found"}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as ex:
+            logger.error("Error fetching users", exc_info=True)
+            return Response({"error": "Internal server error"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
