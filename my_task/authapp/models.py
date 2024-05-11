@@ -26,10 +26,17 @@ class AdminLogin(models.Model):
     password=models.CharField(max_length=254)
 
 
+class Category(models.Model):
+    name = models.CharField(max_length=255, unique=True)
+    description = models.TextField(blank=True, null=True)
+
+    def __str__(self):
+        return self.name
+    
 
 class Products(models.Model):
     product_name=models.CharField(max_length=100)
-    category=models.CharField(max_length=100,default="")
+    category=models.ForeignKey(Category, on_delete=models.CASCADE )
     sub_category=models.CharField(max_length=100,default="")
     price=models.IntegerField(default="0")
     desc=models.CharField(max_length=300)
@@ -38,12 +45,7 @@ class Products(models.Model):
     def __str__(self):
         return self.product_name
     
-class Category(models.Model):
-    name = models.CharField(max_length=255, unique=True)
-    description = models.TextField(blank=True, null=True)
 
-    def __str__(self):
-        return self.name
 
 class Subcategory(models.Model):
     name = models.CharField(max_length=255)

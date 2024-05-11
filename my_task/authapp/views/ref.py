@@ -3693,3 +3693,148 @@ class VerbAPIView(BaseAPIView):
         
         
         
+
+
+
+# ==============================================================================================================
+
+
+
+# from django.views import View
+# from django.shortcuts import render, redirect
+# from django.http import HttpResponse, JsonResponse
+# from django.contrib.auth import authenticate, login, logout
+# from django.contrib.auth.models import User
+# from django.core.exceptions import ObjectDoesNotExist
+# from ..models import Products, Category, Cart
+# import json
+# import razorpay
+# from django.conf import settings
+
+# class HomeView(View):
+#     def get(self, request):
+#         try:
+#             products = Products.objects.all()  # Retrieve all products from the database
+#             return render(request, 'ecomapp/home.html', {'products': products})
+#         except Exception as e:
+#             return HttpResponse("An error occurred: {}".format(str(e)))
+
+# class SignupView(View):
+#     def get(self, request):
+#         return render(request, 'ecomapp/components/signup.html')
+    
+#     def post(self, request):
+#         try:
+#             user_data = {field: request.POST.get(field) for field in ['name', 'email', 'password', 'gender', 'adress', 'phone']}
+#             existing_user = User.objects.filter(email=user_data['email']).exists()
+#             if existing_user:
+#                 return render(request, 'ecomapp/home.html', {'message': "User already exists"})
+#             else:
+#                 user = User.objects.create_user(first_name=user_data['name'], username=user_data['email'], email=user_data['email'], password=user_data['password'])
+#                 return render(request, 'ecomapp/home.html')
+#         except Exception as e:
+#             return HttpResponse("An error occurred: {}".format(str(e)))
+
+# class HandleLoginView(View):
+#     def get(self, request):
+#         return render(request, 'ecomapp/components/login.html')
+    
+#     def post(self, request):
+#         try:
+#             username = request.POST.get('email')
+#             userpassword = request.POST.get('password')
+#             user = User.objects.filter(username=username).first()
+#             if user is None:
+#                 return render(request, "ecomapp/home.html", {"message": "User is not registered"})
+#             myuser = authenticate(username=username, password=userpassword)
+#             if myuser is not None:
+#                 login(request, myuser)
+#                 return render(request, "ecomapp/home.html", {"user": user})
+#             else:
+#                 return render(request, "ecomapp/home.html")
+#         except Exception as e:
+#             return HttpResponse("An error occurred: {}".format(str(e)))
+
+# class HandleLogoutView(View):
+#     def get(self, request):
+#         logout(request)
+#         return redirect('/Authapp/login')
+
+# class ProductView(View):
+#     def get(self, request):
+#         try:
+#             products = Products.objects.select_related("category").all()
+#             return render(request, 'ecomapp/products.html', {'products': products})
+#         except Exception as e:
+#             return HttpResponse("An error occurred: {}".format(str(e)))
+        
+#     def post(self, request):
+#         try:
+#             product_for_search = request.POST.get('name')
+#             search_product = Products.objects.filter(product_name__icontains=product_for_search)
+#             return render(request, 'ecomapp/products.html', {'products': search_product})
+#         except Exception as e:
+#             return HttpResponse("An error occurred: {}".format(str(e)))
+
+# class ProfileView(View):
+#     def get(self, request):
+#         if request.user.is_authenticated:
+#             user_details = User.objects.filter(email=request.user.email).first()
+#             return render(request, "ecomapp/components/profile.html", {"user": user_details})
+#         else:
+#             return HttpResponse("You are not authenticated")
+
+# class CartView(View):
+#     def post(self, request):
+#         try:
+#             if request.user.is_authenticated:
+#                 product_id = request.POST.get('product_id')
+#                 user_id = request.user.email
+#                 cart_object, _ = Cart.objects.get_or_create(user_id=user_id, Product_id=product_id)
+#                 cart_object.quantity += 1
+#                 cart_object.save()
+#                 return redirect("cart")
+#             else:
+#                 return render(request, "ecomapp/components/login.html", {"message": "You are not authenticated"})
+#         except Exception as e:
+#             return HttpResponse("An error occurred: {}".format(str(e)))
+
+#     def get(self, request):
+#         try:
+#             if request.user.is_authenticated:
+#                 user_mail = request.user.email
+#                 cart_items = Cart.objects.filter(user_id=user_mail).select_related("product")
+#                 total_price = sum(cart_item.product.price for cart_item in cart_items)
+#                 return render(request, "ecomapp/components/cart.html", {"products": cart_items, "total_price": total_price})
+#             else:
+#                 return render(request, "ecomapp/components/login.html", {"message": "You are not authenticated"})
+#         except Exception as e:
+#             return HttpResponse("An error occurred: {}".format(str(e)))
+
+# class CartDeleteView(View):
+#     def post(self, request):
+#         try:
+#             product_id = request.POST.get('product_id')
+#             Cart.objects.filter(Product_id=product_id).delete()
+#             return redirect('/Authapp/cart')
+#         except Exception as e:
+#             return HttpResponse("An error occurred: {}".format(str(e)))
+
+# class CreateOrderView(View):
+#     def post(self, request):
+#         try:
+#             data = json.loads(request.body)
+#             payment_amount = data["amount"]
+#             client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
+#             order = client.order.create({
+#                 "amount": payment_amount,
+#                 "currency": "INR",
+#                 "payment_capture": "1"
+#             })
+#             return JsonResponse({
+#                 "order_id": order["id"],
+#                 "razorpay_key": settings.RAZORPAY_KEY_ID,
+#                 "amount": payment_amount,
+#             })
+#         except Exception as e:
+#             return HttpResponse("An error occurred: {}".format(str(e)))

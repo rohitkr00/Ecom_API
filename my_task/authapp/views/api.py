@@ -1,6 +1,7 @@
 from django.shortcuts import render
 from django.contrib.auth.models import User
 import logging
+from django.core.serializers import deserialize
 # Create your views here.from django.shortcuts import render
 from rest_framework import status
 from rest_framework import viewsets
@@ -63,6 +64,7 @@ class UserViewset(APIView):
                 "message":"email is already registered"
             }, status=status.HTTP_400_BAD_REQUEST)
             serializer=self.get_serializer(data=data)
+            
 
             if serializer.is_valid():
                 serializer.save()
@@ -386,13 +388,18 @@ class TransactionView(APIView):
 
 
 class CatagoryViewset(APIView):
+    def get_serializer(self, *args, **kwargs):
+        return CatagorySerializer(*args, **kwargs)
+    
+    def get_querydata(self, *args, **kwargs):
+        return Category.objects.filter(*args, **kwargs)
      
     def get(self, request):
         try:
-            query_data=Category.objects.all()
+            query_data=self.get_querydata()
             if query_data.exists():
-                task_data=CatagorySerializer(query_data, many=True)
-                return Response(task_data.data, status=status.HTTP_200_OK)
+                serializer=self.get_serializer(query_data, many=True)
+                return Response(serializer.data, status=status.HTTP_200_OK)
             return Response({"message": "No Category found"}, status=status.HTTP_404_NOT_FOUND)
         except Exception as ex:
             logger.error("Error fetching it", exc_info=True)
@@ -403,14 +410,14 @@ class CatagoryViewset(APIView):
         try:
             name=data.get('name')
 
-            if Category.objects.filter(name=name).exists():
+            if self.get_querydata(name=name).exists():
                 return Response({
                 "message":"Category is already registered"
             }, status=status.HTTP_400_BAD_REQUEST)
 
 
             
-            serializer=CatagorySerializer(data=data)
+            serializer=self.get_serializer(data=data)
             if serializer.is_valid():
                 serializer.save()
                 return Response(serializer.data, status=status.HTTP_200_OK)
@@ -425,8 +432,8 @@ class CatagoryViewset(APIView):
 
     def patch(self, request):
             try:
-                query_data=Category.objects.get(id=request.data.get('id'))
-                serializer = CatagorySerializer(query_data, data=request.data, partial=True)
+                query_data=self.get_querydata(id=request.data.get('id'))
+                serializer = self.get_serializer(query_data, data=request.data, partial=True)
                 if serializer.is_valid():
                     serializer.save()
                     return Response({'msg': 'category updated successfully'}, status=status.HTTP_200_OK)
@@ -438,7 +445,7 @@ class CatagoryViewset(APIView):
 
     def delete(self, request):
         try:
-            query_data=Category.objects.filter(id=request.data.get('id'))
+            query_data=self.get_querydata(id=request.data.get('id'))
             if query_data.exists():
                 query_data.delete()
                 return Response({'msg': 'Category deleted successfully'}, status=status.HTTP_200_OK)
@@ -459,12 +466,17 @@ class CatagoryViewset(APIView):
 
 
 class SubCatagoryViewset(APIView):
+    def get_serializer(self, *args, **kwargs):
+        return SubCatagorySerializer(*args, **kwargs)
+    
+    def get_querydata(self, *args, **kwargs):
+        return Subcategory.objects.filter(*args, **kwargs)
      
     def get(self, request):
         try:
-            query_data=Subcategory.objects.all()
+            query_data=self.get_querydata()
             if query_data.exists():
-                task_data=SubCatagorySerializer(query_data, many=True)
+                task_data=self.get_serializer(query_data, many=True)
                 return Response(task_data.data, status=status.HTTP_200_OK)
             return Response({"message": "No Suncategory found"}, status=status.HTTP_404_NOT_FOUND)
         except Exception as ex:
@@ -474,7 +486,7 @@ class SubCatagoryViewset(APIView):
     def post(self, request):
         data=request.data
         try:
-            serializer=SubCatagorySerializer(data=data)
+            serializer=self.get_serializer(data=data)
             if serializer.is_valid():
                 serializer.save()
                 return Response(serializer.data, status=status.HTTP_200_OK)
@@ -489,8 +501,8 @@ class SubCatagoryViewset(APIView):
 
     def patch(self, request):
         try:
-            query_data=Subcategory.objects.get(id=request.data.get('id'))
-            serializer = SubCatagorySerializer(query_data, data=request.data, partial=True)
+            query_data=self.get_querydata(id=request.data.get('id'))
+            serializer = self.get_serializer(query_data, data=request.data, partial=True)
             if serializer.is_valid():
                 serializer.save()
                 return Response({'msg': 'Subcategory updated successfully'}, status=status.HTTP_200_OK)
@@ -502,7 +514,7 @@ class SubCatagoryViewset(APIView):
 
     def delete(self, request):
         try:
-            query_data=Subcategory.objects.filter(id=request.data.get('id'))
+            query_data=self.get_querydata(id=request.data.get('id'))
             if query_data.exists():
                 query_data.delete()
                 return Response({'msg': 'Subcategory deleted successfully'}, status=status.HTTP_200_OK)

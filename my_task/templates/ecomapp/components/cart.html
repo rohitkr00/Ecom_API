@@ -53,6 +53,7 @@
         <h6>Total_amount: ₹{{total_price}}</h6>
         <form id="payment-form">
             <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+           
             <input type="hidden" id="payment-amount" value="{{total_price}}">
             <button type="button"class="btn btn-success" id="pay-button">Pay Now</button>
         </form>
@@ -63,11 +64,12 @@
     document.getElementById("pay-button").addEventListener("click", function() {
       const amountElement = document.getElementById("payment-amount");
       const paymentAmount = parseFloat(amountElement.value) * 100; // Convert to paise
-    
+      
       fetch("{% url 'create_order' %}", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          "X-CSRFToken": csrfToken
         },
         body: JSON.stringify({
           amount: paymentAmount, // Sending the amount to the backend

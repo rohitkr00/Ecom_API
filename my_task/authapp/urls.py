@@ -29,15 +29,15 @@ urlpatterns = [
 
 # ==================================================================
 
-    path('', web.home, name='home'),
-    path('signup/', web.Signup, name='signup'),
-    path('login/', web.handlelogin, name='login'),
-    path('logout/', web.handlelogout, name='logout'),
-    path('product/', web.product, name='product'),
-    path('profile/', web.profile, name='profile'),
-    path('cart/', web.cart, name='cart'),
-    path('cart_delete/', web.cart_delete, name='cart_delete'),
-    path('create_order/', web.create_order, name='create_order'),
+    path('', web.HomeView.as_view(), name='home'),
+    path('signup/', web.SignupView.as_view(), name='signup'),
+    path('login/', web.HandleLoginView.as_view(), name='login'),
+    path('logout/', web.HandleLogoutView.as_view(), name='logout'),
+    path('product/', web.ProductView.as_view(), name='product'),
+    path('profile/', web.ProfileView.as_view(), name='profile'),
+    path('cart/', web.CartView.as_view(), name='cart'),
+    path('cart_delete/', web.CartDeleteView.as_view(), name='cart_delete'),
+    path('create_order/', web.CreateOrderView.as_view(), name='create_order'),
     
 
     # Add other URLs as needed
