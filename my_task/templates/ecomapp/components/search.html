@@ -5,16 +5,16 @@
 
 {% block content %}
 <section id="mobile-products" class="product-store position-relative padding-large">
-    {% if categories %}
-        {% for category in categories %}
+    {% if products %}
+        
             <div class="container">
                 <div class="row">
                     <div class="display-header d-flex justify-content-between pb-3 pt-3">
-                        <h2 class="display-7 text-dark text-uppercase pt-3">{{ category.name }}</h2>
+                        <h2 class="display-7 text-dark text-uppercase pt-3">Your search products</h2>
                     </div>
                     <div class="swiper product-swiper">
                         <div class="swiper-wrapper">
-                            {% for product in category.products.all %}
+                            {% for product in products %}
                                 <div class="swiper-slide">
                                     <div class="product-card position-relative ">
                                         <div class="image-holder shadow" style="height: 230px; width: 250px; overflow: hidden;">
@@ -43,7 +43,7 @@
                 </div>
             </div>
             <div class="swiper-pagination position-absolute text-center"></div>
-        {% endfor %}
+        
     {% else %}
         <div class="container">
             <div class="row">

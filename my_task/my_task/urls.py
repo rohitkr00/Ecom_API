@@ -14,7 +14,7 @@ urlpatterns = [
     path('api/token/refresh/', jwt_views.TokenRefreshView.as_view(), name ='token_refresh'), 
     path('debug/', include(debug_toolbar.urls)),
     path('admin/', admin.site.urls),
-    path('logout/',RedirectView.as_view(url = '/admin/logout/') ),
+    path('logout/',RedirectView.as_view(url = '/admin/logout/')),
     path('Authapp/', include('authapp.urls')),
 
 ]

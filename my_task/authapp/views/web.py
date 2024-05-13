@@ -45,12 +45,7 @@ class SignupView(View):
         return render(request, 'ecomapp/components/signup.html')
     
     def post(self, request):
-        # name=request.POST.get('name')
-        # username=request.POST.get('email')
-        # password=request.POST.get('password')
-        # gender=request.POST.get('gender')
-        # adress=request.POST.get('adress')
-        # phone=request.POST.get('phone')
+       
         try:
             user_data = {field: request.POST.get(field) for field in ['name', 'email', 'password', 'gender', 'adress', 'phone']}
             existing_user = User.objects.filter(email=user_data['email'])
@@ -58,9 +53,7 @@ class SignupView(View):
                 return render(request, 'ecomapp/home.html', {'message':"data is already exist"})
             else:
                 user = User.objects.create_user(first_name=user_data['name'], username=user_data['email'], email=user_data['email'], password=user_data['password'])
-                # user_login = UserLogin(email = email, password = password)
                 user.save()
-                # user_login.save()
                 return render(request, 'ecomapp/home.html')
         except Exception as e:
             return HttpResponse("An error occurred: {}".format(str(e)))
@@ -93,6 +86,7 @@ class  HandleLoginView(View):
             if myuser is not None:
                
                 login(request, myuser)
+                request.session['user_id'] = myuser.id
                 return render(request,"ecomapp/home.html", {"user": user})
             
             else:
@@ -122,9 +116,9 @@ class HandleLogoutView(View):
 class ProductView(View):
     def get(self, request):
         try:
-            products = Products.objects.select_related("category").all()  # Retrieve all products from the database
-            # Category_item = Category.objects.all()
-            return render(request, 'ecomapp/products.html', {'products': products})
+            categories = Category.objects.prefetch_related('products').all()
+
+            return render(request, 'ecomapp/products.html', {'categories': categories})
         except Exception as e:
             return HttpResponse("An error occurred: {}".format(str(e)))
         
@@ -132,7 +126,7 @@ class ProductView(View):
         try:
             product_for_search = request.POST.get('name')
             search_product = Products.objects.filter(product_name__icontains = product_for_search)
-            return render(request, 'ecomapp/products.html', {'products': search_product})
+            return render(request, 'ecomapp/components/search.html', {'products': search_product})
         except Exception as e:
             return HttpResponse("An error occurred: {}".format(str(e)))
 
@@ -168,19 +162,16 @@ class CartView(View):
         try:
             if request.user.is_authenticated:
                 product_id = request.POST.get('product_id')
-                print(product_id)
-                user_query = request.user
-                user_id = user_query.email
-                print(user_id)
-                # user = User.objects.filter(email=user_id)
+                user_id = request.user.id
+                
                 try:
-                    cart_object = Cart.objects.get(user_id=user_id, Product_id=product_id)
+                    cart_object = Cart.objects.get(user_id_id=user_id, Product_id_id=product_id)
                     if cart_object:
                         cart_object.quantity +=1
                         cart_object.save()
                         return redirect("cart")
                 except ObjectDoesNotExist:
-                    cart = Cart(user_id=user_id, Product_id=product_id)
+                    cart = Cart(user_id_id=user_id, Product_id_id=product_id)
                     cart.save()
                     return redirect("cart")
             else:
@@ -191,26 +182,30 @@ class CartView(View):
     def get(self, request):
         try:
             if request.user.is_authenticated:
-                user_mail=request.user.email
-                cart_items = Cart.objects.filter(user_id=user_mail)
-                # Get the product IDs and quantities from the cart
-                product_ids_in_cart = cart_items.values_list('Product_id', 'quantity', flat=False)
-                # Fetch the products related to these product IDs
-                products_in_cart = Products.objects.filter(id__in=[pid for pid, _ in product_ids_in_cart])
-                # Create a list of products with their respective quantities
-                products_with_quantities = [
-                    {   
+                # Fetch cart items for the authenticated user
+                cart_items = Cart.objects.select_related('Product_id__category').filter(user_id=request.user)
+
+                products_with_quantities = []
+                total_price = 0
+
+                # Iterate over cart items and gather product details
+                for cart_item in cart_items:
+                    product = cart_item.Product_id
+                    quantity = cart_item.quantity
+                    amount = product.price * quantity
+
+                    # Append product details to the list
+                    products_with_quantities.append({
                         "id": product.id,
                         "product": product,
                         "quantity": quantity,
-                        "amount" : product.price
-                    }
-                    for product, (_, quantity) in zip(products_in_cart, product_ids_in_cart)
-                ]
-                # Calculate the total price considering the quantities
-                total_price = sum(
-                    product.price * quantity for product, quantity in zip(products_in_cart, [q for _, q in product_ids_in_cart])
-                )
+                        "amount": amount,
+                        "category": product.category  # Include category details
+                    })
+
+                    # Accumulate total price
+                    total_price += amount
+
                 # Pass the required data to the template
                 return render(
                     request,
@@ -218,24 +213,13 @@ class CartView(View):
                     {
                         "products": products_with_quantities,
                         "total_price": total_price,
-                        
                     },
                 )
             else:
-                return render(request, "ecomapp/components/login.html", {"message":"You are not Authenticated"})
+                return render(request, "ecomapp/components/login.html", {"message": "You are not Authenticated"})
         except Exception as e:
             return HttpResponse("An error occurred: {}".format(str(e)))
-        # cart_item = Cart.objects.filter(user_id=user_mail)
-      
-        # product_ids_incart = cart_item.values_list('Product_id', flat=True)
-        # products_in_cart = Products.objects.filter(id__in=product_ids_incart)
-        # print(products_in_cart)
-        # total_price=0
-        # for product in products_in_cart:
-        #     total_price += product.price
-        # return render(request, "ecomapp/components/cart.html", { "products":products_in_cart, "total_price": total_price, "cart_items":cart_item})
-    
-
+       
     
         
         
@@ -244,7 +228,8 @@ class CartDeleteView(View):
     def post(self, request):
         try:
             p_id = request.POST.get('product_id')
-            product_delete = Cart.objects.filter(Product_id = p_id)
+            u_id = request.user.id
+            product_delete = Cart.objects.filter(user_id = u_id,Product_id = p_id)
             product_delete.delete()
             # return render(request, "ecomapp/components/cart.html")
             return redirect('/Authapp/cart')

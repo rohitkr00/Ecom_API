@@ -36,7 +36,7 @@ class Category(models.Model):
 
 class Products(models.Model):
     product_name=models.CharField(max_length=100)
-    category=models.ForeignKey(Category, on_delete=models.CASCADE )
+    category=models.ForeignKey(Category, related_name='products', on_delete=models.CASCADE )
     sub_category=models.CharField(max_length=100,default="")
     price=models.IntegerField(default="0")
     desc=models.CharField(max_length=300)
@@ -69,6 +69,6 @@ class Transaction(models.Model):
 
 
 class Cart(models.Model):
-    user_id = models.CharField(max_length=200)
-    Product_id = models.IntegerField(max_length=200)
+    user_id = models.ForeignKey(User, on_delete=models.CASCADE)
+    Product_id = models.ForeignKey(Products, on_delete=models.CASCADE)
     quantity = models.IntegerField(max_length=200, default=1)
