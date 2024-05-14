@@ -1,6 +1,6 @@
-from django.urls import path
-# from rest_framework import routers
+from django.urls import path, include
 from .views import web, api
+from rest_framework.routers import DefaultRouter
 # from views.api import(
 # UserViewset, 
 # LoginViewset, 
@@ -15,6 +15,10 @@ from .views import web, api
 
 # )
 
+router = DefaultRouter()
+router.register(r'person_view', api.PersonViewSet, basename='person-view')
+
+
 urlpatterns = [
     path('register_view/', api.UserViewset.as_view()),
     path('login_view/', api.LoginViewset.as_view()),
@@ -26,6 +30,7 @@ urlpatterns = [
     path('order_complete/', api.TransactionView.as_view()),
     path('category_view/', api.CatagoryViewset.as_view()),
     path('sub_category_view/', api.SubCatagoryViewset.as_view()),
+    path('view/', include(router.urls)),
 
 # ==================================================================
 

@@ -1,7 +1,10 @@
 from django.shortcuts import render
 from django.contrib.auth.models import User
+from rest_framework import viewsets
 import logging
 from django.core.serializers import deserialize
+from django.contrib.auth.hashers import make_password
+
 # Create your views here.from django.shortcuts import render
 from rest_framework import status
 from rest_framework import viewsets
@@ -58,7 +61,9 @@ class UserViewset(APIView):
             data=request.data
             email1=data.get('email')
             password1=data.get('password')
-
+            # hashed_password = make_password(password1)
+            # data['password'] = hashed_password
+            # print(data)
             if self.get_querydata(email=email1).exists():
                 return Response({
                 "message":"email is already registered"
@@ -218,7 +223,7 @@ class RegisterProduct(APIView):
 
     def get(self, request):
         try:
-            query_data=self.get_querydata()
+            query_data=Products.objects.select_related('category')
             if query_data.exists():
                 paginator = PageNumberPagination()
                 paginator.page_size = 2
@@ -519,6 +524,66 @@ class SubCatagoryViewset(APIView):
                 query_data.delete()
                 return Response({'msg': 'Subcategory deleted successfully'}, status=status.HTTP_200_OK)
             return Response({"message": "No Subcategory found"}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as ex:
+            logger.error("Error fetching users", exc_info=True)
+            return Response({"error": "Internal server error"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+
+
+# =======================================================================================================================
+# =======================================================ViewSetClass====================================================
+# =======================================================================================================================
+
+
+
+
+class PersonViewSet(viewsets.ModelViewSet):
+    queryset = User.objects.all()
+    serializer_class = UserDefaultSerializer
+
+    def create(self, request, *args, **kwargs):
+        try:
+            serializer = self.get_serializer(data=request.data)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data, status=status.HTTP_201_CREATED)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as ex:
+            logger.error("Error fetching users", exc_info=True)
+            return Response({"error": "Internal server error"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+    def update(self, request, *args, **kwargs):
+        try:
+            instance = self.get_object()
+            serializer = self.get_serializer(instance, data=request.data)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data, status=status.HTTP_200_OK)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as ex:
+            logger.error("Error fetching users", exc_info=True)
+            return Response({"error": "Internal server error"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+
+    def partial_update(self, request, *args, **kwargs):
+        try:
+            instance = self.get_object()
+            serializer = self.get_serializer(instance, data=request.data, partial=True)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data, status= status.HTTP_200_OK)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as ex:
+            logger.error("Error fetching users", exc_info=True)
+            return Response({"error": "Internal server error"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+
+    def destroy(self, request, *args, **kwargs):
+        try:
+            instance = self.get_object()
+            instance.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
         except Exception as ex:
             logger.error("Error fetching users", exc_info=True)
             return Response({"error": "Internal server error"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

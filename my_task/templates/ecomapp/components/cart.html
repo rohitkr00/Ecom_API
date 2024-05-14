@@ -40,7 +40,7 @@
                     <form action="{% url 'cart_delete' %}" method="post">
                         {% csrf_token %}
                         <input type="hidden" name="product_id" value="{{ item.id }}">
-                        <input type="submit" value="Delete" class="btn btn-sm btn-danger">
+                        <input type="submit" value="Remove" class="btn btn-sm btn-danger">
                     </form>
                 </td>
             </tr>
