@@ -1,8 +1,5 @@
-{% extends 'ecomapp/base.html' %}
-{% load static %}
-{% block title %}Welcome to Ministore{% endblock %}
-
-{% block content %}
+{% extends 'ecomapp/base.html' %} {% load static %} {% block title %}Welcome to
+Ministore{% endblock %} {% block content %}
 <!-- Billboard section -->
 
 <section id="billboard" class="position-relative overflow-hidden bg-light-blue">
@@ -11,16 +8,43 @@
     <div class="swiper-wrapper">
       <div class="swiper-slide">
         <div class="container">
+          
           <div class="row d-flex align-items-center">
             <div class="col-md-6">
+              {% for message in messages %}
+
+          <div
+            class="alert alert-{{message.tags}}  alert-dismissible fade show"
+            role="alert"
+          >
+            <strong>{{message}}</strong>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="alert"
+              aria-label="Close"
+            ></button>
+          </div>
+
+          {% endfor %}
               <div class="banner-content">
-                <h1 class="display-2 text-uppercase text-dark pb-5">Your Products Are Great.</h1>
-                <a href="{% url 'product' %}" class="btn btn-medium btn-dark text-uppercase btn-rounded-none">Shop Product</a>
+                
+                <h1 class="display-2 text-uppercase text-dark pb-5">
+                  Your Products Are Great.
+                </h1>
+                <a
+                  href="{% url 'product' %}"
+                  class="btn btn-medium btn-dark text-uppercase btn-rounded-none"
+                  >Shop Product</a
+                >
               </div>
             </div>
             <div class="col-md-5">
               <div class="image-holder">
-                <img src="{% static 'images/banner-image.png' %}" alt="banner">
+                <img
+                  src="{% static 'images/banner-image.png' %}"
+                  alt="banner"
+                />
               </div>
             </div>
           </div>

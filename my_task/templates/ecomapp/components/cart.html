@@ -5,9 +5,25 @@
 {% block title %}Cart Item{% endblock %}
 
 {% block content %}
-<div class="container p-5">
-    <h2>Your Shopping Cart</h2>
 
+<div class="container pt-5">
+    <h2 class="mt-5 mb-3">Your Shopping Cart</h2>
+    {% for message in messages %}
+
+    <div
+      class="alert alert-{{message.tags}} mt-5 alert-dismissible fade show"
+      role="alert"
+    >
+      <strong>{{message}}</strong>
+      <button
+        type="button"
+        class="btn-close"
+        data-bs-dismiss="alert"
+        aria-label="Close"
+      ></button>
+    </div>
+
+    {% endfor %}
     {% if products %}
     <table class="table table-striped">
         <thead>

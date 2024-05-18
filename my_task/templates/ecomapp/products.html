@@ -7,16 +7,16 @@
 <section id="mobile-products" class="product-store position-relative padding-large">
     {% if categories %}
         {% for category in categories %}
-            <div class="container">
+            <div class="container mt-1">
                 <div class="row">
-                    <div class="display-header d-flex justify-content-between pb-3 pt-3">
-                        <h2 class="display-7 text-dark text-uppercase pt-3">{{ category.name }}</h2>
+                    <div class="display-header bg-gray d-flex justify-content-between shadow p-1">
+                        <h2 class="display-7 text-dark text-uppercase pt-3 ps-5">{{ category.name }}</h2>
                     </div>
                     <div class="swiper product-swiper">
                         <div class="swiper-wrapper">
                             {% for product in category.products.all %}
                                 <div class="swiper-slide">
-                                    <div class="product-card position-relative ">
+                                    <div class="product-card position-relative pt-4">
                                         <div class="image-holder shadow" style="height: 230px; width: 250px; overflow: hidden;">
                                             <img src="/media/{{ product.product_image }}" style="height: 100%; width: 100%; overflow: hidden;" alt="product-item" class="img-fluid shadow">
                                         </div>

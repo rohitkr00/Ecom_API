@@ -3,7 +3,10 @@ from datetime import timedelta
 import os
 from celery.schedules import crontab
 from django.contrib.messages import constants as message_constants
+import os
+from dotenv import load_dotenv
 
+load_dotenv()
 
 
 
@@ -12,7 +15,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure--m3!=9(x3lwa=7yr-^^4d(l-p$j1v5y#c4gtad5z4k3tplq!28'
+SECRET_KEY = os.getenv('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -40,6 +43,7 @@ INSTALLED_APPS = [
     'authapp',
     'rest_framework',
     'debug_toolbar',
+    # 'celery_show',
     
 ]
 
@@ -134,8 +138,10 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
 
-RAZORPAY_KEY_ID ='rzp_test_7SlTu5vMhnhHlw'
-RAZORPAY_KEY_SECRET = 'qMS1tM2VPupnwOSFfwNjWFQD'
+
+RAZORPAY_KEY_ID = os.getenv('RAZORPAY_KEY_ID')
+RAZORPAY_KEY_SECRET = os.getenv('RAZORPAY_KEY_SECRET')
+
 
 
 REST_FRAMEWORK = {
@@ -150,15 +156,17 @@ REST_FRAMEWORK = {
 
 EMAIL_HOST='smtp.gmail.com'
 EMAIL_HOST_USER='manankr21@gmail.com'
-EMAIL_HOST_PASSWORD='Rohit@123'
+EMAIL_HOST_PASSWORD= os.getenv('EMAIL_HOST_PASSWORD')
 EMAIL_PORT=465
 EMAIL_USE_TLS=True
 EMAIL_BACKEND='django.core.mail.backends.smtp.EmailBackend'
 
 
-CELERY_BROKER_URL = 'redis://localhost:6379/0'
-CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
-
+CELERY_BROKER_URL = 'redis://localhost:6379'
+CELERY_RESULT_BACKEND = 'redis://localhost:6379'
+# CELERY_ACCEPT_CONTENT = ['application/jason']
+# CELERY_RESULT_SERIALIZER = 'json'
+# CELERY_TASK_SERIALIZER = 'json'
 CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
 
 

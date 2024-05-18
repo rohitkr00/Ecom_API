@@ -4,8 +4,7 @@ from rest_framework import viewsets
 import logging
 from django.core.serializers import deserialize
 from django.contrib.auth.hashers import make_password
-
-# Create your views here.from django.shortcuts import render
+from authapp.tasks import send_notification
 from rest_framework import status
 from rest_framework import viewsets
 from rest_framework.decorators import api_view, permission_classes
@@ -547,6 +546,7 @@ class PersonViewSet(viewsets.ModelViewSet):
             serializer = self.get_serializer(data=request.data)
             if serializer.is_valid():
                 serializer.save()
+                send_notification.delay()
                 return Response(serializer.data, status=status.HTTP_201_CREATED)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         except Exception as ex:
@@ -587,3 +587,17 @@ class PersonViewSet(viewsets.ModelViewSet):
         except Exception as ex:
             logger.error("Error fetching users", exc_info=True)
             return Response({"error": "Internal server error"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+
+
+
+
+
+@api_view(['GET'])
+def my_view(request):
+    # Call the Celery task
+    result = send_notification()
+    if result:
+        return Response({"message": "successfull"}, status=status.HTTP_200_OK)
+    else:
+        return Response({"message":"False"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

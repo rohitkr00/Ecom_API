@@ -54,13 +54,13 @@ class SignupView(View):
             else:
                 user = User.objects.create_user(first_name=user_data['name'], username=user_data['email'], email=user_data['email'], password=user_data['password'])
                 user.save()
-                return render(request, 'ecomapp/home.html')
+                messages.success(request, 'Registration was successful!')
+                return render(request, 'ecomapp/components/login.html')
         except Exception as e:
             return HttpResponse("An error occurred: {}".format(str(e)))
         
 
 class  HandleLoginView(View):
-    
     
     def get(self, request):
         try:
@@ -86,12 +86,11 @@ class  HandleLoginView(View):
             if myuser is not None:
                
                 login(request, myuser)
-                request.session['user_id'] = myuser.id
+                messages.success(request,"login successfull")
                 return render(request,"ecomapp/home.html", {"user": user})
             
             else:
-                # messages.error(request,"Invalid Credentials")
-                
+                messages.error(request,"Invalid Credentials")
                 return render(request, "ecomapp/home.html")
         except Exception as e:
             return HttpResponse("An error occurred: {}".format(str(e)))
@@ -102,6 +101,7 @@ class HandleLogoutView(View):
     def get(self, request):
         try:
             logout(request)
+            messages.warning(request,"Logout successfull")
             return redirect('/Authapp/login')
         except Exception as e:
             return HttpResponse("An error occurred: {}".format(str(e)))
@@ -169,12 +169,14 @@ class CartView(View):
                     if cart_object:
                         cart_object.quantity +=1
                         cart_object.save()
+                        messages.success(request, 'product added to cart')
                         return redirect("cart")
                 except ObjectDoesNotExist:
                     cart = Cart(user_id_id=user_id, Product_id_id=product_id)
                     cart.save()
                     return redirect("cart")
             else:
+                messages.info(request, "You need to login first")
                 return render(request, "ecomapp/components/login.html", {"message":"You are not Authenticated"})
         except Exception as e:
             return HttpResponse("An error occurred: {}".format(str(e)))

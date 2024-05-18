@@ -1,5 +1,6 @@
 from my_task.celery import app
 import smtplib
+from celery import shared_task
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from random import randint
@@ -13,7 +14,7 @@ def sendemail(email):
 		message = """
 					<html>
 					<body>
-					<h1>Hello this is your sales report</h1>
+					<h1>Your Profile has been created</h1>
 					<hr>
 					<h3>There is nothing to show</h3>
 					<br>
@@ -21,7 +22,7 @@ def sendemail(email):
 					</body>
 					</html>"""
 		msg=MIMEMultipart()
-		msg['Subject'] = "Login otp"
+		msg['Subject'] = "Account Registration"
 		msg['From'] = "manankr21@gmail.com"
 		msg['To'] = email
 		msg.attach(MIMEText(message,'html'))
@@ -39,7 +40,8 @@ def sendemail(email):
 
 
 
-@app.task(name="send_notification")
+# @app.task(name="send_notification")
+@shared_task
 def send_notification():
         subject = "subject"
         message = "Your account is verified"

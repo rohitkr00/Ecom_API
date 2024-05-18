@@ -1,7 +1,7 @@
 <!-- templates/ecommerce_app/nav.html -->
 {% load static %}
-<header id="header" class="site-header header-scrolled position-fixed text-black bg-light">
-    <nav id="header-nav" class="navbar navbar-expand-lg px-3 mb-3">
+<header id="header" class="site-header header-scrolled position-fixed text-black bg-light shadow">
+    <nav id="header-nav" class="navbar navbar-expand-lg px-2 mb-1 ">
       <div class="container-fluid">
         <a class="navbar-brand" href="{% url 'home' %}">
           <img src="{% static 'images/main-logo.png' %}" class="logo">
@@ -14,14 +14,14 @@
         <div class="offcanvas offcanvas-end" tabindex="-1" id="bdNavbar" aria-labelledby="bdNavbarOffcanvasLabel">
           <div class="offcanvas-header px-4 pb-0">
             <a class="navbar-brand" href="{% url 'home' %}">
-              <img src="{% static 'images/main-logo.png' %}" class="logo">
+              <img src="{% static 'images/main-logo.png' %}" class="logo ">
             </a>
             <button type="button" class="btn-close btn-close-black" data-bs-dismiss="offcanvas" aria-label="Close"></button>
           </div>
           <div class="offcanvas-body">
             <ul id="navbar" class="navbar-nav text-uppercase justify-content-end align-items-center flex-grow-1 pe-3">
               <li class="nav-item">
-                <a class="nav-link me-4 active" href="{% url 'home' %}">Home</a>
+                <a class="nav-link me-4" href="{% url 'home' %}">Home</a>
               </li>
               {% comment %} <li class="nav-item">
                 <a class="nav-link me-4" href="#company-services">Services</a>
@@ -50,8 +50,8 @@
               <li class="nav-item">
                 <form method="post" action="{% url 'product' %}">
                   {%csrf_token%}
-                  <input type="text" class="border-0 rounded-1" name="name" placeholder="Search for product">
-                  <input type="submit" value="search" class="border-0 rounded-1"></form>
+                  <input type="text" class="border-0 shadow rounded-1 p-2" name="name" placeholder="Search for product">
+                  <input type="submit" value="search" class="border-0 shadow p-2 btn-success rounded-1"></form>
               </li>
 
               {% comment %} <li class="nav-item dropdown">

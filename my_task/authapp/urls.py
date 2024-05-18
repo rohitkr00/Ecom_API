@@ -20,6 +20,7 @@ router.register(r'person_view', api.PersonViewSet, basename='person-view')
 
 
 urlpatterns = [
+    path('my_view/', api.my_view),
     path('register_view/', api.UserViewset.as_view()),
     path('login_view/', api.LoginViewset.as_view()),
     # path('admin_register/', api.AdminRegister.as_view()),
