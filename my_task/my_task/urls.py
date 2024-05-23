@@ -5,6 +5,7 @@ from django.contrib import admin
 from django.urls import path, include
 from rest_framework_simplejwt import views as jwt_views
 from django.views.generic import RedirectView
+from authapp.firebase import showFirebaseJS
 
 if settings.DEBUG:
     import debug_toolbar
@@ -16,6 +17,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('logout/',RedirectView.as_view(url = '/admin/logout/')),
     path('Authapp/', include('authapp.urls')),
+    path('firebase-messaging-sw.js', showFirebaseJS, name='firebase-messaging-sw.js'),
 
 ]
 

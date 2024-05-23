@@ -1,6 +1,7 @@
 from django.urls import path, include
 from .views import web, api
 from rest_framework.routers import DefaultRouter
+from .firebase import send_notification , showFirebaseJS
 # from views.api import(
 # UserViewset, 
 # LoginViewset, 
@@ -44,6 +45,8 @@ urlpatterns = [
     path('cart/', web.CartView.as_view(), name='cart'),
     path('cart_delete/', web.CartDeleteView.as_view(), name='cart_delete'),
     path('create_order/', web.CreateOrderView.as_view(), name='create_order'),
+    path('send_notification/', send_notification, name='send_notification'),
+    
     
 
     # Add other URLs as needed

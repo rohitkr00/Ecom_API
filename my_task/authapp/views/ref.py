@@ -3838,3 +3838,99 @@ class VerbAPIView(BaseAPIView):
 #             })
 #         except Exception as e:
 #             return HttpResponse("An error occurred: {}".format(str(e)))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<script type="module">
+  // Import the functions you need from the SDKs you need
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-app.js";
+  import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-analytics.js";
+  // TODO: Add SDKs for Firebase products that you want to use
+  // https://firebase.google.com/docs/web/setup#available-libraries
+
+  // Your web app's Firebase configuration
+  // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+  const firebaseConfig = {
+    apiKey: "AIzaSyBviz7T8a7WKYLI1R8AAErHjN2xeNhCjfk",
+    authDomain: "manankr.firebaseapp.com",
+    projectId: "manankr",
+    storageBucket: "manankr.appspot.com",
+    messagingSenderId: "1007232031585",
+    appId: "1:1007232031585:web:9aa5a7c42fbb66a7f58320",
+    measurementId: "G-WXHPX3Z6B8"
+  };
+
+  // Initialize Firebase
+  const app = initializeApp(firebaseConfig);
+  const analytics = getAnalytics(app);
+</script>
+
+
+
+
+
+https://chatgpt.com/share/81322ac3-840e-4f5c-82c0-67954eccd28c
+
+
+
+
+
+
+
+
+from django.conf import settings
+from django.http import JsonResponse
+from pyfcm import FCMNotification
+import json
+
+def send_notification(request):
+    # Firebase server key
+    server_key = settings.FCM_SERVER_KEY
+    push_service = FCMNotification(api_key=server_key)
+
+    # Get device registration token from the request
+    body_unicode = request.body.decode('utf-8')
+    body_data = json.loads(body_unicode)
+    registration_id = body_data['registration_id']
+    message_title = body_data['title']
+    message_body = body_data['body']
+
+    # Send notification
+    result = push_service.notify_single_device(
+        registration_id=registration_id,
+        message_title=message_title,
+        message_body=message_body
+    )
+
+    return JsonResponse(result)
+
+# Add this to your urls.py
+from django.urls import path
+from .views import send_notification
+
+urlpatterns = [
+    path('send_notification/', send_notification, name='send_notification'),
+]

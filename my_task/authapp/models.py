@@ -17,7 +17,7 @@ class UserDetails(models.Model):
         return self.name
 
 class UserLogin(models.Model):
-    email=models.EmailField(max_length=254)
+    email=models.EmailField(max_length=254) 
     password=models.CharField(max_length=254)
 
 

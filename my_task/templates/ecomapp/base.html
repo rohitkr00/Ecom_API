@@ -16,6 +16,9 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Jost:wght@300;400;500&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
     <script src="{% static 'js/modernizr.js' %}"></script>
+    {% comment %} <script src="{% static 'firebase-messaging-sw.js' %}"></script> {% endcomment %}
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-messaging-compat.js"></script>
 </head>
 <body>
     {% include 'ecomapp/nav.html' %}
@@ -31,4 +34,5 @@
     <script type="text/javascript" src="{% static 'js/plugins.js' %}"></script>
     <script type="text/javascript" src="{% static 'js/script.js' %}"></script>
 </body>
+
 </html>

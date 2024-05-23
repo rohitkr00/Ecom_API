@@ -130,7 +130,12 @@ USE_TZ = True
 
 
 STATIC_URL = 'static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+STATICFILES_DIRS=[
+
+    os.path.join(BASE_DIR,'static')
+]
+
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 MEDIA_URL = 'media/'
 MEDIA_ROOT =os.path.join(BASE_DIR,"media")
 
@@ -169,6 +174,8 @@ CELERY_RESULT_BACKEND = 'redis://localhost:6379'
 # CELERY_TASK_SERIALIZER = 'json'
 CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
 
+
+FCM_SERVER_KEY = os.getenv('FCM_SERVER_KEY')
 
 DEBUG_TOOLBAR_PANELS = [
     'debug_toolbar.panels.versions.VersionsPanel',

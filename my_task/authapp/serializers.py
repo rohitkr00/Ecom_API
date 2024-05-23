@@ -14,7 +14,7 @@ class UserDefaultSerializer(serializers.ModelSerializer):
 
     class Meta:
         model=User
-        fields="__all__"
+        fields=['first_name','email','username','password']
 
 
 class UserSerializer(serializers.ModelSerializer):

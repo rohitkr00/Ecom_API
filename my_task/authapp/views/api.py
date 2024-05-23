@@ -47,10 +47,8 @@ class UserViewset(APIView):
     def get(self, request):
         try:
             query_data=self.get_querydata()
-            if query_data.exists():
-                serializer=self.get_serializer(query_data, many=True)
-                return Response(serializer.data, status=status.HTTP_200_OK)
-            return Response({"message": "No User found"}, status=status.HTTP_404_NOT_FOUND)
+            serializer=self.get_serializer(query_data, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
         except Exception as ex:
             logger.error("Error fetching users", exc_info=True)
             return Response({"error": "Internal server error"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

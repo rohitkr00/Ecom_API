@@ -2,7 +2,6 @@ from .import client
 from rest_framework.serializers import ValidationError
 from rest_framework import status
 
-
 # from django.contrib.auth.backends import BaseBackend
 # from django.contrib.auth.hashers import check_password  # For password verification
 # from .models import UserDetails  # Your custom user model
@@ -62,3 +61,6 @@ class RazorpayClient:
 #             return UserDetails.objects.get(pk=user_id)
 #         except UserDetails.DoesNotExist:
 #             return None
+
+
+

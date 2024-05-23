@@ -74,12 +74,69 @@
             <button type="button"class="btn btn-success" id="pay-button">Pay Now</button>
         </form>
     </div>
+    
     <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    
+
+
     <script>
-    const csrfToken = document.querySelector("input[name='csrfmiddlewaretoken']").value;
+
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('/firebase-messaging-sw.js')
+        .then((registration) => {
+            console.log('Service Worker registered with scope:', registration.scope);
+        }).catch((err) => {
+            console.log('Service Worker registration failed:', err);
+        });
+    }
+    
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDM8II5LZKARXfCtKrkMq4n1wFH_Nidpr0",
+      authDomain: "ecomm-46ec0.firebaseapp.com",
+      databaseURL: "https://ecomm-46ec0-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "ecomm-46ec0",
+      storageBucket: "ecomm-46ec0.appspot.com",
+      messagingSenderId: "776601915913",
+      appId: "1:776601915913:web:31d9364423f30bca155ed8",
+      measurementId: "G-9MXN6EF4YN"
+        };
+
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    const messaging = firebase.messaging();
+
+    // Request permission and get token
+    messaging.getToken({ vapidKey: '776601915913' })
+    .then((currentToken) => {
+      if (currentToken) {
+          console.log('FCM Registration Token:', currentToken);
+          localStorage.setItem('fcm_token', currentToken);
+      } else {
+          console.log('No registration token available. Request permission to generate one.');
+      }
+  }).catch((err) => {
+      console.log('An error occurred while retrieving token. ', err);
+  });
+
+
+  window.addEventListener('load', () => {
+    const fcmToken = localStorage.getItem('fcm_token');
+    if (fcmToken) {
+        console.log('FCM Token found:', fcmToken);
+    } else {
+        console.log('FCM Token not found.');
+    }
+    });
+
+
+
+
     document.getElementById("pay-button").addEventListener("click", function() {
+      const csrfToken = document.querySelector("input[name='csrfmiddlewaretoken']").value;
       const amountElement = document.getElementById("payment-amount");
       const paymentAmount = parseFloat(amountElement.value) * 100; // Convert to paise
+      const fcmToken = localStorage.getItem('fcm_token');
       
       fetch("{% url 'create_order' %}", {
         method: "POST",
@@ -103,6 +160,22 @@
             handler: function (response) {
               console.log("Payment successful", response);
               // Handle successful payment (e.g., update UI, redirect)
+              fetch("{% url 'send_notification' %}", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": csrfToken
+                },
+                body: JSON.stringify({
+                    registration_id: fcmToken,
+                    title: "Payment Successful",
+                    body: "Your payment was successful. Thank you for shopping with us!"
+                })
+            })
+            .then(res => res.json())
+            .then(data => console.log('Notification sent:', data))
+            .catch(err => console.error('Error sending notification:', err));
+        //=====================================================================
             },
             theme: {
               color: "#3399cc",
